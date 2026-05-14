@@ -122,33 +122,49 @@ public class Domino implements Problem {
         int[] oregNenek = kategoriaValtozoi(2, 3);
         int[] sztarKlub = kategoriaValtozoi(2, 4);
 
+        // Gombos jobb helyezést ért el, mint Cecília és mint a Sztár-Klub versenyzője, de rosszabbat, mint Zabos.
         elotteVegzett(clauses, gombos, cecilia);
         elotteVegzett(clauses, gombos, sztarKlub);
         elotteVegzett(clauses, zabos, gombos);
 
+        // Emiatt volt több megoldás
+        // Nem volt előzőleg beleírva hogy Cecília ne legyen a Sztár-Klub tagja
+        for (int hely = 0; hely < helyezesek; hely++) {
+            kizarjaEgymast(clauses, keresztnev(hely, 1), klub(hely, 4));
+        }
+
+
+        // Az Anyókák képviselője közvetlenül Emília előtt végzett, aki közvetlenül Dombos előtt végzett a bajnokságon.
         kozvetlenulElotteVegzett(clauses, anyokak, emilia);
         kozvetlenulElotteVegzett(clauses, emilia, dombos);
 
+
+        // Rozália nem a Nagyi-Klub tagja.
         for (int hely = 0; hely < helyezesek; hely++) {
             kizarjaEgymast(clauses, keresztnev(hely, 4), klub(hely, 2));
         }
 
+        // Lombos valahol Amália előtt, aki valahol az Öreg Nénék versenyzője előtt végzett.
         elotteVegzett(clauses, lombos, amalia);
         elotteVegzett(clauses, amalia, oregNenek);
 
+        // Kabos keresztneve nem Cecília és nem Rozália.
         for (int hely = 0; hely < helyezesek; hely++) {
             kizarjaEgymast(clauses, vezeteknev(hely, 2), keresztnev(hely, 1));
             kizarjaEgymast(clauses, vezeteknev(hely, 2), keresztnev(hely, 4));
         }
 
+        // Lombos keresztneve nem Emília.
         for (int hely = 0; hely < helyezesek; hely++) {
             kizarjaEgymast(clauses, vezeteknev(hely, 3), keresztnev(hely, 2));
         }
 
+        // Gombos nem az Öreg nénék képviseletében játszott.
         for (int hely = 0; hely < helyezesek; hely++) {
             kizarjaEgymast(clauses, vezeteknev(hely, 1), klub(hely, 3));
         }
 
+        // Emília nem a Sztár-Klub tagja.
         for (int hely = 0; hely < helyezesek; hely++) {
             kizarjaEgymast(clauses, keresztnev(hely, 2), klub(hely, 4));
         }
@@ -156,7 +172,59 @@ public class Domino implements Problem {
         return clauses;
     }
 
+    // Megoldás kiírása
+    public void megoldasKiirasa(String satOutput) {
+        String[] vezeteknevek = {"Dombos", "Gombos", "Kabos", "Lombos", "Zabos"};
+        String[] keresztnevek = {"Amália", "Cecília", "Emília", "Otília", "Rozália"};
+        String[] klubok = {"Anyókák", "Mamikák", "Nagyi-Klub", "Öreg Nénék", "Sztár-Klub"};
+
+        String[] eredmenyekVezeteknev = new String[5];
+        String[] eredmenyekKeresztnev = new String[5];
+        String[] eredmenyekKlub = new String[5];
+
+        String[] tokens = satOutput.replace("SAT", "").trim().split("\\s+");
+
+        for (String token : tokens) {
+            if (token.isEmpty() || token.equals("0")) continue;
+
+            int val = Integer.parseInt(token);
+
+            if (val > 0) {
+                if (val >= 1 && val <= 25) {
+                    int alap = val - 1;
+                    int helyezes = alap / 5;
+                    int nevIndex = alap % 5;
+                    eredmenyekVezeteknev[helyezes] = vezeteknevek[nevIndex];
+                } else if (val >= 26 && val <= 50) {
+                    int alap = val - 26;
+                    int helyezes = alap / 5;
+                    int nevIndex = alap % 5;
+                    eredmenyekKeresztnev[helyezes] = keresztnevek[nevIndex];
+                } else if (val >= 51 && val <= 75) {
+                    int alap = val - 51;
+                    int helyezes = alap / 5;
+                    int nevIndex = alap % 5;
+                    eredmenyekKlub[helyezes] = klubok[nevIndex];
+                }
+            }
+        }
+
+        System.out.println("--- A BAJNOKSÁG VÉGEREDMÉNYE ---");
+        for (int i = 0; i < 5; i++) {
+            System.out.println((i + 1) + ". helyezett: "
+                    + eredmenyekVezeteknev[i] + " "
+                    + eredmenyekKeresztnev[i] + " ("
+                    + eredmenyekKlub[i] + ")");
+        }
+    }
+
     public static void main(String[] args) {
         System.out.println(new Domino().toDIMACS());
+
+        Domino domino = new Domino();
+
+        String solverEredmeny = "-1 -2 -3 4 -5 -6 -7 -8 -9 10 -11 12 -13 -14 -15 16 -17 -18 -19 -20 -21 -22 23 -24 -25 -26 -27 -28 -29 30 31 -32 -33 -34 -35 -36 -37 38 -39 -40 -41 42 -43 -44 -45 -46 -47 -48 49 -50 -51 52 -53 -54 -55 56 -57 -58 -59 -60 -61 -62 63 -64 -65 -66 -67 -68 69 -70 -71 -72 -73 -74 75";
+
+        domino.megoldasKiirasa(solverEredmeny);
     }
 }
